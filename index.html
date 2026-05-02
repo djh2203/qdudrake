@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青岛大学德雷克联合学院 | QDU-Drake</title>
+
+    <!-- 轻量级 CDN 库 -->
+    <script src="https://unpkg.com/lenis@1.1.9/dist/lenis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-color: #050a10;
+            --primary-blue: #00469c;   /* 学院标准蓝，可在这里修改 */
+            --text-gray: rgba(255, 255, 255, 0.25);
+            --text-white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-white);
+            font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+            overflow-x: hidden;
+            transition: background-color 0.8s;
+        }
+
+        /* 3D 背景层 */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 10%;
+        }
+
+        .hero {
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            line-height: 1.2;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .hero .subtitle {
+            margin-top: 20px;
+            color: var(--primary-blue);
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        /* 文字揭示容器 */
+        .reveal-container { max-width: 1000px; }
+
+        .reveal-text {
+            font-size: clamp(1.2rem, 3vw, 2.5rem);
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .reveal-text span {
+            color: var(--text-gray);
+            transition: color 0.3s;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 50px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: background 0.3s;
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-blue);
+        }
+
+        footer {
+            padding: 3rem 10%;
+            text-align: center;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <!-- 内容区域：直接替换这里的文字即可 -->
+    <section class="hero">
+        <h1 id="hero-title">青岛大学德雷克联合学院</h1>
+        <p class="subtitle">Qingdao University · Drake Joint College</p>
+    </section>
+
+    <section>
+        <div class="reveal-container">
+            <p class="reveal-text" id="reveal1">
+                融合中西教育精粹，培养具有全球视野的领军人才。青岛大学与德雷克大学强强联手，为您开启国际化未来。
+            </p>
+        </div>
+    </section>
+
+    <section>
+        <h2 style="margin-bottom: 2rem;">专业设置 / Programs</h2>
+        <div class="card-grid">
+            <div class="card"><h3>数字媒体技术</h3><p>Digital Media Technology</p></div>
+            <div class="card"><h3>会计学</h3><p>Accounting</p></div>
+            <div class="card"><h3>精算学</h3><p>Actuarial Science</p></div>
+            <div class="card"><h3>数据科学与大数据技术</h3><p>Data Science & Big Data</p></div>
+        </div>
+    </section>
+
+    <section>
+        <h2 style="margin-bottom: 2rem;">国际交流 / Exchange</h2>
+        <p class="reveal-text" style="font-size: 1.5rem;">
+            学分互认 · 双学位项目 · 海外名师讲堂 · 全球胜任力培养
+        </p>
+    </section>
+
+    <footer>
+        <p>© 2026 青岛大学德雷克联合学院. All Rights Reserved.</p>
+    </footer>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // ========== 1. 平滑滚动 ==========
+        const lenis = new Lenis();
+        
+        function raf(time) {
+            lenis.raf(time);
+            ScrollTrigger.update();        // 关键：强制与GSAP同步
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        // ========== 2. 文字切割 ==========
+        function splitText(elId) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            const text = el.innerText;
+            el.innerHTML = text.split("").map(char => `<span>${char}</span>`).join("");
+        }
+        splitText("reveal1");
+
+        // ========== 3. GSAP动画注册 ==========
+        gsap.registerPlugin(ScrollTrigger);
+
+        // 首屏标题入场
+        gsap.to("#hero-title", {
+            opacity: 1,
+            y: 0,
+            duration: 1.5,
+            ease: "power4.out"
+        });
+
+        // 文字逐字高亮
+        gsap.to("#reveal1 span", {
+            scrollTrigger: {
+                trigger: "#reveal1",
+                start: "top 80%",
+                end: "top 20%",
+                scrub: 1,
+            },
+            color: "#ffffff",
+            stagger: 0.1
+        });
+
+        // 滚动驱动背景色层次变化
+        gsap.to("body", {
+            scrollTrigger: {
+                trigger: ".hero",
+                start: "top top",
+                end: "bottom top",
+                scrub: true
+            },
+            backgroundColor: "#001a33"
+        });
+
+        // ========== 4. Three.js 轻量3D背景 ==========
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // 限制过高像素比
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // ========== 主体：SVG 校徽 → 3D 线框 ==========
+        import { SVGLoader } from 'https://unpkg.com/three@0.128.0/examples/jsm/loaders/SVGLoader.js';
+
+        const loader = new SVGLoader();
+        loader.load('logo.svg', (data) => {
+            console.log('SVG加载成功，路径数量:', data.paths.length);
+            const paths = data.paths;
+            const group = new THREE.Group();
+
+            // 1. 先把所有线条原封不动地加入组（不单独居中）
+            paths.forEach((path) => {
+                const shapes = SVGLoader.createShapes(path);
+                shapes.forEach((shape) => {
+                    const geo = new THREE.ShapeGeometry(shape);
+                    const edges = new THREE.EdgesGeometry(geo);
+                    const line = new THREE.LineSegments(
+                        edges,
+                        new THREE.LineBasicMaterial({ color: 0x00469c })
+                    );
+                    group.add(line);
+                });
+            });
+
+            // 2. 用 Box3 计算出整个 group 的包围盒
+            const box = new THREE.Box3();
+            group.children.forEach(line => {
+                line.geometry.computeBoundingBox();
+                box.expandByObject(line);
+            });
+
+            // 3. 获取整体中心点，然后将所有线条统一平移，使整体居中
+            const center = box.getCenter(new THREE.Vector3());
+            group.children.forEach(line => {
+                line.geometry.translate(-center.x, -center.y, -center.z);
+            });
+
+            // 4. 缩放与定位（如果发现上下颠倒，可把 scale.y 设为负值）
+            group.scale.set(0.02, 0.02, 0.02);
+            group.position.set(0, 0, 0);
+
+            scene.add(group);
+            window.logoGroup = group;
+        });
+
+        // 300个发光粒子
+        const particlesGeo = new THREE.BufferGeometry();
+        const particlesCount = 300;
+        const posArray = new Float32Array(particlesCount * 3);
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 12;
+        }
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            size: 0.03,
+            color: 0x66a3ff,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const particles = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particles);
+
+        // 灯光
+        const ambientLight = new THREE.AmbientLight(0x404060);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 5);
+        scene.add(dirLight);
+
+        camera.position.z = 5;
+
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // 如果校徽已加载，让它旋转和跟随滚动
+            if (window.logoGroup) {
+                window.logoGroup.rotation.x += 0.005;
+                window.logoGroup.rotation.y += 0.01;
+
+                if (lenis.limit) {
+                    const progress = lenis.scroll / lenis.limit;
+                    window.logoGroup.position.y = -progress * 2.5;
+                }
+            }
+
+            // 粒子旋转保留
+            particles.rotation.y += 0.0002;
+            particles.rotation.x += 0.0001;
+
+            // 粒子跟随滚动
+            if (lenis.limit) {
+                const progress = lenis.scroll / lenis.limit;
+                particles.position.y = -progress * 2.2;
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 窗口大小自适应
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
