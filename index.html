@@ -258,8 +258,8 @@
                 line.geometry.translate(-center.x, -center.y, -center.z);
             });
 
-            // 4. 缩放与定位（如果发现上下颠倒，可把 scale.y 设为负值）
-            group.scale.set(0.02, 0.02, 0.02);
+            // 4. 缩放与定位（Y轴反转确保校徽正立）
+            group.scale.set(0.02, -0.02, 0.02);
             group.position.set(0, 0, 0);
 
             scene.add(group);
@@ -296,13 +296,16 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // 如果校徽已加载，让它旋转和跟随滚动
+            // 如果校徽已加载，让它随滚动角度摆动，不露背面
             if (window.logoGroup) {
-                window.logoGroup.rotation.x += 0.005;
-                window.logoGroup.rotation.y += 0.01;
-
                 if (lenis.limit) {
-                    const progress = lenis.scroll / lenis.limit;
+                    const progress = lenis.scroll / lenis.limit; // 0~1
+                    // 映射到弧度：安全范围 -1.2 到 +1.2 rad（约 ±69°）
+                    const maxAngle = 1.2; // 可以改小，越大会越侧
+                    const angle = (progress - 0.5) * 2 * maxAngle; // progress=0.5时angle=0，两端最大±maxAngle
+                    window.logoGroup.rotation.y = angle;
+
+                    // 同时保留上下浮动
                     window.logoGroup.position.y = -progress * 2.5;
                 }
             }
