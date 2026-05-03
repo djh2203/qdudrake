@@ -161,8 +161,14 @@
     <script type="module">
         import * as THREE from 'three';
 
-        // ========== 1. 平滑滚动 ==========
+        // ========== 1. 平滑滚动 & 鼠标监听 ==========
         const lenis = new Lenis();
+        
+        // 鼠标位置（用于驱动校徽点头）
+        const mouse = { y: 0.5 }; // 初始居中
+        window.addEventListener('mousemove', (e) => {
+            mouse.y = e.clientY / window.innerHeight; // 0 ~ 1，上小下大
+        });
         
         function raf(time) {
             lenis.raf(time);
@@ -296,22 +302,29 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // 带惯性的旋转（Lerp平滑跟随）
+            // 如果校徽已加载，实现带惯性的滚动左右转头 + 鼠标上下点头
             if (window.logoGroup) {
-                if (!window.currentLogoAngle) window.currentLogoAngle = 0;  // 初始化当前角度
+                // 初始化惯性角度变量（仅首次）
+                if (!window.currentLogoYaw) window.currentLogoYaw = 0;
+                if (!window.currentLogoPitch) window.currentLogoPitch = 0;
 
                 if (lenis.limit) {
                     const progress = lenis.scroll / lenis.limit;
-                    const maxAngle = 1.2;
-                    // 根据进度计算目标角度
-                    const targetAngle = (progress - 0.5) * 2 * maxAngle;
 
-                    // 惯性参数：0.08 表示每帧拉近8%，值越小惯性越大（越慢跟上）
-                    const lerpFactor = 0.08;  
-                    window.currentLogoAngle += (targetAngle - window.currentLogoAngle) * lerpFactor;
+                    // --- 左右转头（Y轴），跟随滚动进度 ---
+                    const maxYaw = 1.2; // 左右最大弧度
+                    const targetYaw = (progress - 0.5) * 2 * maxYaw;
+                    window.currentLogoYaw += (targetYaw - window.currentLogoYaw) * 0.08;
+                    window.logoGroup.rotation.y = window.currentLogoYaw;
 
-                    // 把平滑后的角度应用到校徽
-                    window.logoGroup.rotation.y = window.currentLogoAngle;
+                    // --- 上下点头（X轴），跟随鼠标垂直位置 ---
+                    const maxPitch = 0.5; // 上下最大弧度，±0.5 很安全
+                    // 鼠标 0（顶部）-> 目标角度 +maxPitch，鼠标 1（底部）-> -maxPitch
+                    const targetPitch = (0.5 - mouse.y) * 2 * maxPitch;
+                    window.currentLogoPitch += (targetPitch - window.currentLogoPitch) * 0.06;
+                    window.logoGroup.rotation.x = window.currentLogoPitch;
+
+                    // 上下浮动跟随滚动
                     window.logoGroup.position.y = -progress * 2.5;
                 }
             }
