@@ -296,16 +296,22 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // 如果校徽已加载，让它随滚动角度摆动，不露背面
+            // 带惯性的旋转（Lerp平滑跟随）
             if (window.logoGroup) {
-                if (lenis.limit) {
-                    const progress = lenis.scroll / lenis.limit; // 0~1
-                    // 映射到弧度：安全范围 -1.2 到 +1.2 rad（约 ±69°）
-                    const maxAngle = 1.2; // 可以改小，越大会越侧
-                    const angle = (progress - 0.5) * 2 * maxAngle; // progress=0.5时angle=0，两端最大±maxAngle
-                    window.logoGroup.rotation.y = angle;
+                if (!window.currentLogoAngle) window.currentLogoAngle = 0;  // 初始化当前角度
 
-                    // 同时保留上下浮动
+                if (lenis.limit) {
+                    const progress = lenis.scroll / lenis.limit;
+                    const maxAngle = 1.2;
+                    // 根据进度计算目标角度
+                    const targetAngle = (progress - 0.5) * 2 * maxAngle;
+
+                    // 惯性参数：0.08 表示每帧拉近8%，值越小惯性越大（越慢跟上）
+                    const lerpFactor = 0.08;  
+                    window.currentLogoAngle += (targetAngle - window.currentLogoAngle) * lerpFactor;
+
+                    // 把平滑后的角度应用到校徽
+                    window.logoGroup.rotation.y = window.currentLogoAngle;
                     window.logoGroup.position.y = -progress * 2.5;
                 }
             }
